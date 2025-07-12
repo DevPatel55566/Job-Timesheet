@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Timesheet Entry</title>
+  <style>
+    body { font-family: Arial; padding: 40px; }
+    form, table { max-width: 700px; margin: auto; }
+    input, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+    h2, h3 { text-align: center; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 40px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    .message {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border: 1px solid #c3e6cb;
+      text-align: center;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Timesheet Entry</h2>
+
+  {% if message %}
+    <div class="message">{{ message }}</div>
+  {% endif %}
+
+  <form method="POST" action="/submit">
+    <input type="text" name="week" placeholder="Week" required>
+    <input type="date" name="date" required>
+    <input type="time" name="signin" id="signin" required>
+    <input type="time" name="signout" id="signout" required>
+    <input type="text" name="hours" id="hours" placeholder="Total Hours" readonly required>
+    <input type="text" name="break" placeholder="Break" required>
+    <input type="text" name="payment" placeholder="Payment Received">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h3>Submitted Entries</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Week</th>
+        <th>Date</th>
+        <th>Sign In</th>
+        <th>Sign Out</th>
+        <th>Total Hours</th>
+        <th>Break</th>
+        <th>Payment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in entries %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    const signInInput = document.getElementById("signin");
+    const signOutInput = document.getElementById("signout");
+    const hoursInput = document.getElementById("hours");
+
+    function calculateHours() {
+      const signIn = signInInput.value;
+      const signOut = signOutInput.value;
+
+      if (signIn && signOut) {
+        const [inHours, inMinutes] = signIn.split(':').map(Number);
+        const [outHours, outMinutes] = signOut.split(':').map(Number);
+
+        const signInDate = new Date(0, 0, 0, inHours, inMinutes);
+        const signOutDate = new Date(0, 0, 0, outHours, outMinutes);
+
+        let diff = (signOutDate - signInDate) / 1000 / 60 / 60;
+
+        if (diff < 0) diff += 24; // handle overnight
+
+        hoursInput.value = diff.toFixed(2);
+      }
+    }
+
+    signInInput.addEventListener("change", calculateHours);
+    signOutInput.addEventListener("change", calculateHours);
+  </script>
+</body>
+</html>
